@@ -5,4 +5,4 @@
 
 
 
-#endif //SRTTANALYSIS_STOCHASTICANALYSIS_H
+#endif

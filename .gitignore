@@ -1,3 +1,6 @@
 src/*.o
 src/*.d
 src/rtsanalysis
+src/test*
+src/*.c~
+src/*.h~

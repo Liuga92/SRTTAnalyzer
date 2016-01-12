@@ -6,4 +6,4 @@
 
 
 
-#endif //SRTTANALYSIS_ALGEBRICOPERATIONS_H
+#endif
