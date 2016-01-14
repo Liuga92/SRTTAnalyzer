@@ -1,4 +1,5 @@
-CFLAGS = -Wall -g -ansi
+CFLAGS = -Wall -g
+LDLIBS = -lgsl -lgslcblas #-lm
 
 sources = algebricoperations.c convolutions.c stochasticanalysis.c \
             stochastictasks.c
