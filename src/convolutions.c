@@ -5,20 +5,20 @@
 #include <stdio.h>
 
 void
-convolutions_convolve (const double first[], size_t firstLen,
-		       const double second[], size_t secondLen,
+convolutions_convolve (const double first[], size_t first_len,
+		       const double second[], size_t second_len,
 		       double convolved[])
 {
   size_t n;
 
-  for (n = 0; n < firstLen + secondLen - 1; n++)
+  for (n = 0; n < first_len + second_len - 1; n++)
     {
       size_t kmin, kmax, k;
 
       convolved[n] = 0;
 
-      kmin = (n >= secondLen - 1) ? n - (secondLen - 1) : 0;
-      kmax = (n < firstLen - 1) ? n : firstLen - 1;
+      kmin = (n >= second_len - 1) ? n - (second_len - 1) : 0;
+      kmax = (n < first_len - 1) ? n : first_len - 1;
 
       for (k = kmin; k <= kmax; k++)
 	{
@@ -31,27 +31,28 @@ convolutions_convolve (const double first[], size_t firstLen,
 }
 
 int
-convolutions_shrink_convolve (const double first[], size_t firstLen,
-			      const double second[], size_t secondLen,
-			      size_t deltaSecond, double convolved[])
+convolutions_shrink_convolve (const double first[], size_t first_len,
+			      const double second[], size_t second_len,
+			      size_t delta_second, double convolved[])
 {
-  const double *shiftedFirst;
-  double *shiftedConvolved;
+
+  const double *shifted_first;
+  double *shifted_convolved;
   size_t k;
-  if (secondLen < deltaSecond)
+  if (second_len < delta_second)
     return 0;
 
-  shiftedFirst = &(first[deltaSecond]);
-  shiftedConvolved = &(convolved[deltaSecond]);
+  shifted_first = &(first[delta_second]);
+  shifted_convolved = &(convolved[delta_second]);
 
-  for (k = 0; k < deltaSecond; k++)
+  for (k = 0; k < delta_second; k++)
     {
       convolved[k] = first[k];
 
     }
 
-  convolutions_convolve (shiftedFirst, firstLen - deltaSecond, second,
-			 secondLen, shiftedConvolved);
+  convolutions_convolve (shifted_first, first_len - delta_second, second,
+			 second_len, shifted_convolved);
 
   return 1;
 }
