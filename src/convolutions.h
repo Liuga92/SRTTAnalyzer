@@ -14,15 +14,30 @@ convolutions_convolve (const double first[], size_t first_len,
 		       const double second[], size_t second_len,
 		       double convolved[]);
 
-int
 /*
 Same as before, except the fact that the operation performed is the
-shrinking and convolution described into the paper. The parameter "delta_second"
-is the shift that the second array is subject during the shrinking. 
+splitting and convolution described into the paper .
+The parameter "delta_second"
+the positive shift that has to be applied to second
+ distribution respect to the first.
 */
 
+int
+convolutions_split_convolve (const double first[], size_t first_len,
+			     const double second[], size_t second_len,
+			     size_t delta_second, double convolved[]);
 
-convolutions_shrink_convolve (const double first[], size_t first_len,
+
+/*
+Same as before, except the fact that the operation performed is the
+convolution and shrinking described into the paper .
+The parameter "delta_second"
+ is the shift that the second array is subject during the shrinking.
+*/
+
+int
+convolutions_convolve_shrink (const double first[], size_t first_len,
 			      const double second[], size_t second_len,
 			      size_t delta_second, double convolved[]);
+
 #endif

@@ -31,28 +31,63 @@ convolutions_convolve (const double first[], size_t first_len,
 }
 
 int
-convolutions_shrink_convolve (const double first[], size_t first_len,
-			      const double second[], size_t second_len,
-			      size_t delta_second, double convolved[])
+convolutions_split_convolve (const double first[], size_t first_len,
+			     const double second[], size_t second_len,
+			     size_t delta_second, double convolved[])
 {
 
   const double *shifted_first;
   double *shifted_convolved;
-  size_t k;
-  if (second_len < delta_second)
-    return 0;
+  int k;
+  if (first_len < delta_second)
+    {
+      for (k = 0; k < first_len; k++)
+	{
+	  convolved[k] = first[k];
+	}
+      return 1;
+    }
 
-  shifted_first = &(first[delta_second]);
-  shifted_convolved = &(convolved[delta_second]);
+  shifted_first = &(first[delta_second + 1]);
+  shifted_convolved = &(convolved[delta_second + 1]);
+  convolutions_convolve (shifted_first, first_len - (delta_second + 1),
+			 second, second_len, shifted_convolved);
 
-  for (k = 0; k < delta_second; k++)
+  for (k = 0; k <= delta_second; k++)
     {
       convolved[k] = first[k];
 
     }
 
-  convolutions_convolve (shifted_first, first_len - delta_second, second,
-			 second_len, shifted_convolved);
 
   return 1;
+}
+
+int
+convolutions_convolve_shrink (const double first[], size_t first_len,
+			      const double second[], size_t second_len,
+			      size_t delta_second, double convolved[])
+{
+  int i;
+
+  if (delta_second > first_len || delta_second > second_len)
+    {
+      return 0;
+    }
+
+  convolutions_convolve (first, first_len, second, second_len, convolved);
+
+  for (i = 1; i <= delta_second; i++)
+    {
+      // printf("%lf\n", convolved[0]);
+      convolved[0] += convolved[i];
+    }
+  for (i = 1; i < first_len + second_len; i++)
+    {
+      convolved[i] = convolved[i + delta_second];
+    }
+
+  return 1;
+
+
 }
