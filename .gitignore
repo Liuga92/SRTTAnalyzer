@@ -4,3 +4,4 @@ src/rtsanalysis
 src/test*
 src/*.c~
 src/*.h~
+*.tmp
