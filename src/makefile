@@ -1,15 +1,14 @@
 CFLAGS = -Wall -g
-LDLIBS = -lgsl -lgslcblas #-lm
+LDLIBS = -lgsl -lgslcblas -lm
 
 sources = algebricoperations.c convolutions.c stochasticanalysis.c \
-            stochastictasks.c
+            stochastictasks.c ioutils.c
 
 
 rtsanalysis: rtsanalysis.c $(sources:.c=.o)
 
 test: test.c $(sources:.c=.o)
 
-include $(sources:.c=.d)
 
 
 
@@ -22,6 +21,7 @@ clean:
 	rm -f test
 
 
+include $(sources:.c=.d)
 
 %.d: %.c #as suggested by the gnu make doc https://www.gnu.org/software/make/manual/html_node/Automatic-Prerequisites.html
 	@set -e; rm -f $@; \
