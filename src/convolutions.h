@@ -40,4 +40,9 @@ convolutions_convolve_shrink (const double first[], size_t first_len,
 			      const double second[], size_t second_len,
 			      size_t delta_second, double convolved[]);
 
+/*
+shrink a distribution of an amount equal to "delta"
+*/
+int convolutions_shrink(double dist[], size_t size, size_t delta);
+
 #endif
