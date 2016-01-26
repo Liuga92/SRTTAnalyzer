@@ -4,10 +4,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+/*gets the number of cells*/
 static unsigned int get_cells (const char *string, const char delimiter[]);
+/*parses a line and fills the "t_view" struct with data.
+"line" is teh line, "delimiter" the delimiter string for every cell,
+"buffer" is the buffer to put the distribution (min len is cells - distribution_offset).
+"distribution_offset" is the number of cells before that the distribution starts,
+(3 for now)*/
 static int parse_line (char *line, char *delimiter, double *buffer,
-		       unsigned int cells, stochastic_task_view * t_view);
+		       unsigned int cells, unsigned int distribution_offset,
+		       stochastic_task_view * t_view);
 
 
 stochastic_taskset *
@@ -20,36 +26,41 @@ load_stochastic_taskset (FILE * source, char delimiter[])
   double *buffer = NULL;
   char *line = NULL;
   unsigned int cells = 0;
+  unsigned int distribution_offset = 3;
 
   taskset = new_stochastic_taskset (10);
   while ((str_len = getline (&line, &line_len, source)) != -1)
     {
-      //   printf ("here\n");
-
-      cells = get_cells (line, delimiter) - 3;
-
-      buffer = realloc (buffer, (cells) * sizeof (double));
-      if (!buffer)
+      if (line[0] != '#')
 	{
-	  return NULL;
-	}
-      memset (buffer, 0, (cells) * sizeof (double));
 
-      if (!parse_line (line, delimiter, buffer, cells, &t_view))
-	{
-	  free (buffer);
-	  free (line);
+	  //   printf ("here\n");
 
-	  free_stochastic_taskset (taskset);
-	}
+	  cells = get_cells (line, delimiter) - distribution_offset;
 
-      if (!add_task (taskset, t_view))
-	{
-	  free (buffer);
-	  free (line);
+	  buffer = realloc (buffer, (cells) * sizeof (double));
+	  if (!buffer)
+	    {
+	      return NULL;
+	    }
+	  memset (buffer, 0, (cells) * sizeof (double));
 
-	  free_stochastic_taskset (taskset);
-	  return NULL;
+	  if (!parse_line
+	      (line, delimiter, buffer, cells, distribution_offset, &t_view))
+	    {
+	      free (buffer);
+	      free (line);
+
+	      free_stochastic_taskset (taskset);
+	    }
+
+	  if (!add_task (taskset, t_view))
+	    {
+	      free (buffer);
+	      free (line);
+	      free_stochastic_taskset (taskset);
+	      return NULL;
+	    }
 	}
 
     }
@@ -60,13 +71,26 @@ load_stochastic_taskset (FILE * source, char delimiter[])
 
 }
 
+int fprintf_stochastic_distribution(FILE* destination,stochastic_distribution * sd)
+{
+	int bytes = 0;
+	int i;
+	for(i=0;i<sd->d_len;i++){
+
+		bytes += fprintf(destination, "x:%i\tp:%lf\n",i,sd->dist[i] );
+	}
+	return bytes;
+}
+
 
 static int
 parse_line (char *line, char *delimiter, double *buffer,
-	    unsigned int cells, stochastic_task_view * t_view)
+	    unsigned int cells, unsigned int distribution_offset,
+	    stochastic_task_view * t_view)
 {
   int actual_cell = 0;
   char *line_copy, *line_copy_start, *cell;
+  unsigned int deadline, period, activation_time;
 
   line_copy = strdup (line);
   if (!line_copy)
@@ -79,28 +103,31 @@ parse_line (char *line, char *delimiter, double *buffer,
       switch (actual_cell)
 	{
 	case 0:
-	  t_view->deadline = atoi (cell);
+	  deadline = atoi (cell);
 	  break;
 	case 1:
-	  t_view->period = atoi (cell);
+	  period = atoi (cell);
 	  break;
 	case 2:
-	  t_view->activation_time = atoi (cell);
+	  activation_time = atoi (cell);
 	  break;
-	default:
-	  {
-	    buffer[actual_cell - 3] = atof (cell);
-	  }
+	default:;
 	  break;
 	}
+
+      if (actual_cell >= distribution_offset)
+	{
+	  buffer[actual_cell - distribution_offset] = atof (cell);
+	}
+
       actual_cell++;
     }
 
   free (line_copy_start);
 
-
-  t_view->distribution = buffer;
-  t_view->d_len = cells;
+  *t_view = new_stochastic_task_view (buffer,
+				      cells,
+				      deadline, period, activation_time);
 
 
   return 1;
