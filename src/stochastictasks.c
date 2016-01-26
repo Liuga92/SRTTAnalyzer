@@ -1,12 +1,68 @@
 
 #include "stochastictasks.h"
+#include "convolutions.h"
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
-
+/*check if the distribution sums (with small error) to 1*/
 static int check_distr (const double *distribution, size_t distr_len);
+/*increases the size of the array of tasks of the given taskset*/
 static int increase_taskset (stochastic_taskset * ts);
+
+
+/*value of the last wrong distribution submation*/
+static double wrong_dist_submation = 0.0;
+/* if different from 0 prints and returns an error if the
+distribution does not sum to 1*/
+static int show_distribution_errors = 1;
+
+
+
+stochastic_distribution *
+split_convolve_SD (stochastic_distribution * first,
+		   stochastic_distribution * second, size_t delta_second)
+{
+
+  stochastic_distribution *r;
+
+  r = new_stochastic_distribution (first->d_len + second->d_len);
+  if (!r)
+    return NULL;
+
+  convolutions_split_convolve (first->dist, first->d_len, second->dist,
+			       second->d_len, delta_second, r->dist);
+
+  return r;
+
+}
+
+
+/*
+convolves and shrink two stochastic dstributions and creates a new one as result.
+Same logic of "convolutions_convolve_shrink" in source "convolutions.h"
+*/
+stochastic_distribution *
+convolve_shrink_SD (stochastic_distribution * first,
+		    stochastic_distribution * second, size_t delta_second)
+{
+  stochastic_distribution *r;
+
+  r = new_stochastic_distribution (first->d_len + second->d_len);
+  if (!r)
+    return NULL;
+
+  if( 0 == convolutions_convolve_shrink (first->dist, first->d_len, second->dist,second->d_len, delta_second, r->dist))
+				{
+					printf("error in convolution shrinking\n" );
+					free_stochastic_distribution(r);
+					return NULL;
+				}
+
+  return r;
+
+}
 
 stochastic_task_view
 new_stochastic_task_view (double *distribution,
@@ -18,22 +74,61 @@ new_stochastic_task_view (double *distribution,
   stochastic_task_view task;
 
 
-  if (!check_distr (distribution, d_len))
-    {
-      fprintf (stderr, "task's distribution with deadline %i,\
-period %i, activation time %i does not sum to one.\n", deadline, period, activation_time);
-    }
 
   task.deadline = deadline;
   task.period = period;
   task.activation_time = activation_time;
-  task.d_len = d_len;
-  task.distribution = distribution;
+  task.sd.d_len = d_len;
+  task.sd.dist = distribution;
 
   return task;
 }
 
+stochastic_distribution *
+new_stochastic_distribution (size_t size)
+{
+  stochastic_distribution *t;
 
+  t = malloc (sizeof (stochastic_distribution));
+  if (!t)
+    return NULL;
+	t->d_len = size;
+  t->dist = calloc (size, sizeof (double));
+  if (!t->dist)
+    {
+      free (t);
+      return NULL;
+    }
+  memset (t->dist, 0, size * sizeof (double));
+
+  return t;
+}
+
+stochastic_distribution *
+copy_stochastic_distribution (const stochastic_distribution * s_dist)
+{
+  stochastic_distribution *d;
+  d = new_stochastic_distribution (s_dist->d_len);
+  if (!d)
+    return NULL;
+  memcpy (d->dist, s_dist->dist, s_dist->d_len * sizeof (double));
+
+  return d;
+
+
+}
+
+void
+free_stochastic_distribution (stochastic_distribution * s_dist)
+{
+  if (!s_dist)
+    return;
+
+  free (s_dist->dist);
+  free (s_dist);
+}
+
+/*creates a new stochastic task in the heap*/
 stochastic_task *
 new_stochastic_task (const double *distribution,
 		     size_t distr_len,
@@ -44,11 +139,11 @@ new_stochastic_task (const double *distribution,
 
 
 
-
-  if (!check_distr (distribution, distr_len))
+	/*if the distribution is wrong and the flag is set returns an error*/
+  if (!check_distr (distribution, distr_len) && show_distribution_errors)
     {
       fprintf (stderr, "task's distribution with deadline %i,\
-period %i, activation time %i does not sum to one.\n", deadline, period, activation_time);
+period %i, activation time %i does not sum to one. the submation is %lf\n", deadline, period, activation_time, wrong_dist_submation);
       return NULL;
     }
 
@@ -64,10 +159,10 @@ period %i, activation time %i does not sum to one.\n", deadline, period, activat
   task->deadline = deadline;
   task->period = period;
   task->activation_time = activation_time;
-  task->d_len = distr_len;
-  task->distribution = calloc (distr_len, sizeof (double));
+  task->sd.d_len = distr_len;
+  task->sd.dist = calloc (distr_len, sizeof (double));
 
-  if (!task->distribution)
+  if (!task->sd.dist)
     {
       return NULL;
     }
@@ -75,7 +170,7 @@ period %i, activation time %i does not sum to one.\n", deadline, period, activat
     int i;
     for (i = 0; i < distr_len; i++)
       {
-	task->distribution[i] = distribution[i];
+	task->sd.dist[i] = distribution[i];
       }
   }
   return task;
@@ -114,7 +209,7 @@ free_stochastic_task (stochastic_task * task)
     {
       return;
     }
-  free (task->distribution);
+  free (task->sd.dist);
   free (task);
 }
 
@@ -130,8 +225,10 @@ free_stochastic_taskset (stochastic_taskset * ts)
     {
       return;
     }
+  // printf ("inside free ts\n");
   for (i = 0; i < ts->tasks_num; i++)
     {
+      //   printf ("freeing task %i of %zu\n", i + 1, ts->tasks_num);
       free_stochastic_task (ts->task_list[i]);
     }
   free (ts->task_list);
@@ -153,8 +250,8 @@ add_task (stochastic_taskset * ts, stochastic_task_view task)
 	}
     }
 
-  ts->task_list[ts->tasks_num] = new_stochastic_task (task.distribution,
-						      task.d_len,
+  ts->task_list[ts->tasks_num] = new_stochastic_task (task.sd.dist,
+						      task.sd.d_len,
 						      task.deadline,
 						      task.period,
 						      task.activation_time);
@@ -169,7 +266,18 @@ add_task (stochastic_taskset * ts, stochastic_task_view task)
 }
 
 
-
+void
+set_disribution_errors (int flag)
+{
+  if (flag)
+    {
+      show_distribution_errors = 1;
+    }
+  else
+    {
+      show_distribution_errors = 0;
+    }
+}
 
 
 
@@ -209,6 +317,7 @@ check_distr (const double *distribution, size_t distr_len)
 
   if (fabs (submation - 1) > 10e-6)
     {
+      wrong_dist_submation = submation;
       return 0;
     }
   return 1;
