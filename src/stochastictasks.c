@@ -53,12 +53,14 @@ convolve_shrink_SD (stochastic_distribution * first,
   if (!r)
     return NULL;
 
-  if( 0 == convolutions_convolve_shrink (first->dist, first->d_len, second->dist,second->d_len, delta_second, r->dist))
-				{
-					printf("error in convolution shrinking\n" );
-					free_stochastic_distribution(r);
-					return NULL;
-				}
+  if (0 ==
+      convolutions_convolve_shrink (first->dist, first->d_len, second->dist,
+				    second->d_len, delta_second, r->dist))
+    {
+      printf ("error in convolution shrinking\n");
+      free_stochastic_distribution (r);
+      return NULL;
+    }
 
   return r;
 
@@ -92,7 +94,7 @@ new_stochastic_distribution (size_t size)
   t = malloc (sizeof (stochastic_distribution));
   if (!t)
     return NULL;
-	t->d_len = size;
+  t->d_len = size;
   t->dist = calloc (size, sizeof (double));
   if (!t->dist)
     {
@@ -139,7 +141,7 @@ new_stochastic_task (const double *distribution,
 
 
 
-	/*if the distribution is wrong and the flag is set returns an error*/
+  /*if the distribution is wrong and the flag is set returns an error */
   if (!check_distr (distribution, distr_len) && show_distribution_errors)
     {
       fprintf (stderr, "task's distribution with deadline %i,\

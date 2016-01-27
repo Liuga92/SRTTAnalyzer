@@ -11,8 +11,8 @@ a stochastic distribution
 */
 typedef struct
 {
-  size_t d_len; /*its len*/
-  double *dist; /*the distribution*/
+  size_t d_len;			/*its len */
+  double *dist;			/*the distribution */
 } stochastic_distribution;
 
 /*
@@ -20,7 +20,7 @@ Struct representing a single task.
 */
 typedef struct
 {
-  stochastic_distribution sd; /*its distribution*/
+  stochastic_distribution sd;	/*its distribution */
   unsigned int deadline;
   unsigned int period;
   unsigned int activation_time;
@@ -32,7 +32,7 @@ object representing a task in the stack
 */
 typedef struct
 {
-  stochastic_distribution sd; /*its distribution*/
+  stochastic_distribution sd;	/*its distribution */
   unsigned int deadline;
   unsigned int period;
   unsigned int activation_time;
@@ -44,9 +44,9 @@ Struct representing a taskset.
 */
 typedef struct
 {
-  size_t tasks_num; /*num of task*/
-  size_t task_list_len; /*len of task list (can be different from tasks_num)*/
-  stochastic_task **task_list; /*array of pointers to tasks*/
+  size_t tasks_num;		/*num of task */
+  size_t task_list_len;		/*len of task list (can be different from tasks_num) */
+  stochastic_task **task_list;	/*array of pointers to tasks */
 } stochastic_taskset;
 
 
