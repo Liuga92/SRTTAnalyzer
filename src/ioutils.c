@@ -71,17 +71,43 @@ load_stochastic_taskset (FILE * source, char delimiter[])
 
 }
 
-int fprintf_stochastic_distribution(FILE* destination,stochastic_distribution * sd)
+int
+fprintf_stochastic_distribution (FILE * destination,
+				 stochastic_distribution * sd)
 {
-	int bytes = 0;
-	int i;
-	for(i=0;i<sd->d_len;i++){
+  int bytes = 0;
+  int i;
+  for (i = 0; i < sd->d_len; i++)
+    {
 
-		bytes += fprintf(destination, "x:%i\tp:%lf\n",i,sd->dist[i] );
-	}
-	return bytes;
+      bytes += fprintf (destination, "x:%i\tp:%lf\n", i, sd->dist[i]);
+    }
+  return bytes;
 }
 
+int
+fprintf_backlog_matrix (FILE * destination, backlog_matrix * b_mat)
+{
+  int count = 0;
+
+  count += fprintf (destination, "dimension %zu\n", b_mat->dimension);
+  {
+    int i, j;
+    for (i = 0; i < b_mat->dimension; i++)
+      {
+	for (j = 0; j < b_mat->dimension; j++)
+	  {
+	    count +=
+	      fprintf (destination, "%lf\t",
+		       b_mat->matrix[j + (i * b_mat->dimension)]);
+	  }
+	count += fprintf (destination, "\n");
+      }
+  }
+
+  return count;
+
+}
 
 static int
 parse_line (char *line, char *delimiter, double *buffer,
