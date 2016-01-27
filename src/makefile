@@ -2,7 +2,7 @@ CFLAGS = -Wall -g
 LDLIBS = -lgsl -lgslcblas -lm
 
 sources = algebricoperations.c convolutions.c stochasticanalysis.c \
-            stochastictasks.c ioutils.c
+            stochastictasks.c ioutils.c schedulingutils.c
 
 
 rtsanalysis: rtsanalysis.c $(sources:.c=.o)
