@@ -75,31 +75,36 @@ convolutions_convolve_shrink (const double first[], size_t first_len,
     }
 
   convolutions_convolve (first, first_len, second, second_len, convolved);
-  convolutions_shrink(convolved,first_len+second_len,delta_second);
+  convolutions_shrink (convolved, first_len + second_len, delta_second);
 
   return 1;
 
 
 }
 
-int convolutions_shrink(double dist[], size_t size, size_t delta){
-	int i;
+int
+convolutions_shrink (double dist[], size_t size, size_t delta)
+{
+  int i;
 
-	if (size < delta) return 0;
-	if(delta == 0) return 1;
+  if (size < delta)
+    return 0;
+  if (delta == 0)
+    return 1;
 
-	for (i = 1; i <= delta; i++)
-	  {
-		// printf("%lf\n", convolved[0]);
-		dist[0] += dist[i];
-	  }
-	for (i = 1; i < size - delta; i++)
-	  {
-		dist[i] = dist[i + delta];
-	  }
-	  for (i=size-delta; i< size;i++){
-		  dist[i] = 0;
-	  }
+  for (i = 1; i <= delta; i++)
+    {
+      // printf("%lf\n", convolved[0]);
+      dist[0] += dist[i];
+    }
+  for (i = 1; i < size - delta; i++)
+    {
+      dist[i] = dist[i + delta];
+    }
+  for (i = size - delta; i < size; i++)
+    {
+      dist[i] = 0;
+    }
 
-	return 1;
+  return 1;
 }
