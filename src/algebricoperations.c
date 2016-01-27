@@ -11,57 +11,62 @@ double
 algop_get_best_eigen (double flat_squared_mat[],
 		      size_t dimension, double result[])
 {
-  int i, best_index, stop_iteration;
-  double best_diff, best_eigenvalue;
-  gsl_vector *eval;
-  gsl_matrix *evec;
-  gsl_eigen_symmv_workspace *wkspace;
-  gsl_vector_view best_eigenvector;
+
+
   gsl_matrix_view m;
+  gsl_vector_complex *eval;
+  gsl_matrix_complex *evec;
+  gsl_eigen_nonsymmv_workspace *w;
 
   m = gsl_matrix_view_array (flat_squared_mat, dimension, dimension);
 
-  eval = gsl_vector_alloc (dimension);
-  evec = gsl_matrix_alloc (dimension, dimension);
+  eval = gsl_vector_complex_alloc (dimension);
+  evec = gsl_matrix_complex_alloc (dimension, dimension);
 
-  wkspace = gsl_eigen_symmv_alloc (dimension);
+  w = gsl_eigen_nonsymmv_alloc (dimension);
 
-  gsl_eigen_symmv (&m.matrix, eval, evec, wkspace);
+  gsl_eigen_nonsymmv (&m.matrix, eval, evec, w);
 
-  gsl_eigen_symmv_free (wkspace);
-
-  gsl_eigen_symmv_sort (eval, evec, GSL_EIGEN_SORT_ABS_ASC);
+  gsl_eigen_nonsymmv_free (w);
 
 
-  best_diff = DBL_MAX;
-  stop_iteration = 0;
-  for (i = 0; i < dimension && !stop_iteration; i++)
-    {
-      double diff, eigenvalue;
+  {
+    int i, best;
+    double best_diff = DBL_MAX;
+    double best_value;
+    gsl_vector_complex_view evec_i;
+    gsl_complex z;
 
-      eigenvalue = gsl_vector_get (eval, i);
-      diff = fabs (1.0 - eigenvalue);
+    for (i = 0; i < dimension; i++)
+      {
+	double diff;
+	gsl_complex eval_i;
 
-      if (diff < best_diff)
-	{
-	  best_diff = diff;
-	  best_index = i;
-	  best_eigenvalue = eigenvalue;
-	}
-      else if (eigenvalue - 1.0 > 0)
-	{
-	  stop_iteration = 1;
-	}
-    }
-  best_eigenvector = gsl_matrix_column (evec, best_index);
+	eval_i = gsl_vector_complex_get (eval, i);
+	diff = fabs (1.0 - GSL_REAL (eval_i));
+	if (diff < best_diff)
+	  {
+	    best = i;
+	    best_diff = diff;
+	    best_value = GSL_REAL (eval_i);
+	  }
 
-  for (i = 0; i < dimension; i++)
-    {
-      result[i] = gsl_vector_get (&best_eigenvector.vector, i);
-    }
+      }
 
-  gsl_vector_free (eval);
-  gsl_matrix_free (evec);
 
-  return best_eigenvalue;
+    evec_i = gsl_matrix_complex_column (evec, best);
+
+    for (i = 0; i < dimension; i++)
+      {
+	z = gsl_vector_complex_get (&evec_i.vector, i);
+	result[i] = GSL_REAL (z);
+      }
+
+    gsl_vector_complex_free (eval);
+    gsl_matrix_complex_free (evec);
+
+
+    return best_value;
+  }
+
 }
