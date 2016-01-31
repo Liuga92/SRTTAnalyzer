@@ -305,6 +305,12 @@ stochastic_distribution *get_mean_response_time_of(backlog_matrix * b_mat)
     free_stochastic_distribution(job_back);
 
     normalize_stochastic_distribution(task_resp);
+    /*if the activation tiem is != from 0, shifts the distribution to
+       the left to compensate */
+    shift_stochastic_distribution(task_resp,
+				  b_mat->sched->ts->task_list[b_mat->id]->
+				  activation_time);
+
     /*accumulate the probability over the deadline into deadline+1 */
     {
 	unsigned int i, deadline;
@@ -314,7 +320,6 @@ stochastic_distribution *get_mean_response_time_of(backlog_matrix * b_mat)
 	    task_resp->dist[i] = 0.0;
 	}
     }
-    normalize_stochastic_distribution(task_resp);
     return task_resp;
 }
 

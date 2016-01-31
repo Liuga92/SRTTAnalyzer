@@ -198,6 +198,30 @@ void normalize_stochastic_distribution(stochastic_distribution * d)
     }
 }
 
+void shift_stochastic_distribution(stochastic_distribution * d,
+				   unsigned int delta)
+{
+    int m;
+
+    if (delta == 0)
+	return;
+
+
+    m = max_index(d);
+    if (m + delta >= d->d_len) {
+	d->d_len = m + delta + 1;
+	d->dist = realloc(d->dist, d->d_len * sizeof(double));
+    }
+    {
+	int i;
+	for (i = m; i >= 0; i--) {
+	    d->dist[i + delta] = d->dist[i];
+	    d->dist[i] = 0.0;
+
+	}
+    }
+}
+
 void free_stochastic_distribution(stochastic_distribution * s_dist)
 {
     if (!s_dist)
@@ -221,7 +245,8 @@ stochastic_task *new_stochastic_task(const double *distribution,
     /*if the distribution is wrong and the flag is set returns an error */
     if (!check_distr(distribution, distr_len) && show_distribution_errors) {
 	fprintf(stderr, "task's distribution with deadline %i,\
-	  period %i, activation time %i does not sum to one. the submation is %lf\n", deadline, period, activation_time, wrong_dist_submation);
+	  period %i, activation time %i does not sum to one. the submation is %lf\n",
+	  deadline, period, activation_time, wrong_dist_submation);
 	return NULL;
     }
 
@@ -316,7 +341,8 @@ int add_task(stochastic_taskset * ts, stochastic_task_view task)
 						       task.sd.d_len,
 						       task.deadline,
 						       task.period,
-						       task.activation_time);
+						       task.
+						       activation_time);
 
     if (!ts->task_list[ts->tasks_num]) {
 	return 0;

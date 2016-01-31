@@ -79,6 +79,13 @@ stochastic_distribution *copy_stochastic_distribution(const
 						      * s_dist);
 
 /*
+shifts the distribution positively  of a value equal to delta.
+*/
+void shift_stochastic_distribution(stochastic_distribution * d,
+				   unsigned int delta);
+
+
+/*
 frees a stochastic distribution
 */
 void free_stochastic_distribution(stochastic_distribution * s_dist);
