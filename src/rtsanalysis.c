@@ -148,8 +148,10 @@ int execute(int argc, char **argv)
 	minimize_stochastic_distribution(r_time);
 	printf("response time for task %i:\n", task);
 	fprintf_stochastic_distribution(stdout, r_time);
-    }
 
+    free_backlog_matrix(b_mat);
+    free_task_schedule(s);
+    }
 
     return 0;
 
