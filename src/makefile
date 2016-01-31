@@ -7,7 +7,6 @@ sources = algebricoperations.c convolutions.c stochasticanalysis.c \
 
 rtsanalysis: rtsanalysis.c $(sources:.c=.o)
 
-test: test.c $(sources:.c=.o)
 
 
 
