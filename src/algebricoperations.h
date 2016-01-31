@@ -14,8 +14,8 @@ returns the eigenvalue nearest to 1 and his corresponding heigenvectors
 in the array of doubles called "result" (whose memory was allocated by the user)
 that has to be a size of equal to "dimension"
 */
-double algop_get_best_eigen (double flat_squared_mat[],
-			     size_t dimension, double result[]);
+double algop_get_best_eigen(double flat_squared_mat[],
+			    size_t dimension, double result[]);
 
 
 #endif
