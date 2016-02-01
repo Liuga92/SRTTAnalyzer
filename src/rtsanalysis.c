@@ -24,7 +24,7 @@ int execute(int argc, char **argv)
     int size = -1;
     int c;
 
-    while ((c = getopt(argc, argv, "hqbs::t:")) != -1) {
+    while ((c = getopt(argc, argv, "hqbs:t:")) != -1) {
 	switch (c) {
 
 	case 'q':
@@ -104,7 +104,7 @@ int execute(int argc, char **argv)
 	if (query_flag) {
 	    unsigned int m;
 	    m = get_minimum_matrix_size(s, task - 1);
-	    printf("minimum matrix's size for task %i: %i\n", task, m);
+	    printf("minimum matrix's size for task %i: %i\n", task , m);
 	    return 0;
 	}
 	if (size_flag) {
