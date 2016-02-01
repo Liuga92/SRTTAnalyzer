@@ -336,13 +336,20 @@ int add_task(stochastic_taskset * ts, stochastic_task_view task)
 	    return 0;
 	}
     }
+	/*if the last task inserted has a deadline greater than  the new one */
+	if( ts->tasks_num > 0 &&
+		ts->task_list[ts->tasks_num - 1]->deadline > task.deadline){
+		fprintf(stderr, "the task with deadline %i, period %i  and"\
+		" activation time %i has a deadline lower than the previous one\n",
+		task.deadline,task.period,task.activation_time);
+		return 0;
+	}
 
     ts->task_list[ts->tasks_num] = new_stochastic_task(task.sd.dist,
 						       task.sd.d_len,
 						       task.deadline,
 						       task.period,
-						       task.
-						       activation_time);
+						       task.activation_time);
 
     if (!ts->task_list[ts->tasks_num]) {
 	return 0;

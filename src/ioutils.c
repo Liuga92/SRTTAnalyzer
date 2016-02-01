@@ -32,7 +32,6 @@ stochastic_taskset *load_stochastic_taskset(FILE * source,
     while ((str_len = getline(&line, &line_len, source)) != -1) {
 	if (line[0] != '#') {
 
-	    //   printf ("here\n");
 
 	    cells = get_cells(line, delimiter) - distribution_offset;
 
@@ -49,6 +48,7 @@ stochastic_taskset *load_stochastic_taskset(FILE * source,
 		free(line);
 
 		free_stochastic_taskset(taskset);
+		return NULL;
 	    }
 
 	    if (!add_task(taskset, t_view)) {
