@@ -104,7 +104,7 @@ int execute(int argc, char **argv)
 	if (query_flag) {
 	    unsigned int m;
 	    m = get_minimum_matrix_size(s, task - 1);
-	    printf("minimum matrix's size for task %i: %i\n", task - 1, m);
+	    printf("minimum matrix's size for task %i: %i\n", task, m);
 	    return 0;
 	}
 	if (size_flag) {
