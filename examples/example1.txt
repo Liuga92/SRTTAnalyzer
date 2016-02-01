@@ -1,0 +1,5 @@
+#the taskset used as example in the paper to build the backlog matrix.
+#use -b -t2 to look at the backlog matrix 
+#deadline,period,activation_time, ... distribution ...
+4,4,0,0,0.5,0.5
+6,6,0,0,0,0.2,0.3,0.5
