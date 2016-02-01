@@ -22,7 +22,6 @@ typedef struct {
     unsigned int deadline;
     unsigned int period;
     unsigned int activation_time;
-    unsigned int identifier;
 } stochastic_task;
 
 /*
