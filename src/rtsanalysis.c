@@ -42,6 +42,8 @@ int execute(int argc, char **argv)
 		printf
 		    ("utility for the computation of the rt distribution."
 		     " The task set is read from the standard input\n");
+        printf("WARNING the tasks must be ordered by the value of"\
+        " the first column. The -t options is mandatory \n");
 		printf
 		    ("use -s <size> to set the size of the backlog matrix\n");
 		printf
