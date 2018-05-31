@@ -1,0 +1,74 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+
+
+
+\begin{document}
+\section{INTRODUCTION}
+This report describes the implementation of the analysis method described in the paper "Stochastic analysis of periodic Real-Time systems". 
+
+\section{STRUCTURE OF THE CODE}
+The code is divided in different sources, that are meant to accomplish different roles inside the program. Every
+unit is made by a couple of files (*.c and *.h), formatted according to what requested by the guidelines on the course's website. A makefile manages the compilation and the cleanup, and the generation of the dependencies files (*.d) automatically from the source code.
+
+The sources called "convolutions.c/.h" and "algebricoperations.c/.h" implements, respectively, functions to convolve arrays and to extract eigenvectors from matrices. Although, these pieces are the basis for the algorithm described in the paper, their tasks are quite not interesting (a not related to real-time arguments).
+
+The same holds for the sources "ioutils.c/h", whose task is to do sophisticated input/output to and from the structures inside the code. Some details are explained later in the section that explains how to use the program.
+
+The sources "stochastictasks.c/.h" contain structures that represent set of tasks. Every task has its own parameters (deadline,period, initial phase) and its own distribution. These data are complemented with a series more of sophisticated information computed by functions in the sources "schedulingutils.c/.h", such that the hyperperiod and  structures that allows iteration over the task released during the hyperperiod.
+
+Up to this point all the code written is capable of doing all the single operations described in the paper, but not to combine them. The sources "stochasticanalysis.c/.h" uses the functions provided by the files described above and combine them to compute all the operations from the creation of the backlog matrix (this is the name used in the paper) to the computation of the response time distribution for the tasks.
+
+\section{IMPLEMENTATION OF THE MODEL}
+The first operation required by the model is the computation of the maximum idle time r. The function that creates the backlog matrix for a given task, called "get\_backlog\_matrix\_of\_size", calls the function "get\_max\_idle\_FP" (inside schedulingutils) that returns the desired value. 
+
+The second phase is the computation of the rth column of the matrix, obtained computing the backlog at the end of the hyperperiod starting from a backlog of r. This is implemented by a function called "compute\_backlog\_until" that takes in input the task set and an optional starting distribution. In this case the distribution has 0 everywhere a pert for the index r, whose value is 1. If the process of convolution-shrinking over the entire hyperperiod is done starting from that distribution, the resulting distribution models P(B\_1,B\_0 = r); informally the backlog at the end of the hyperperiod if at the start was  r. This detail was omitted in the giver version of the paper.
+
+With the above method is possible to compute also P(B\_1,B\_0 = i) with i in [0...r-1]. The matrix is then filled as described in the paper. The extraction of the eigenvector whose eigenavalue is the nearest to 1 was computed using the GNU gsl. To obtain the stationary distribution the eigenvector is normalized (the sum of the values must be 1).
+
+The response time for a job is obtained computing the backlog until the release if the task, starting from the stationary distribution of the backlog (another detail omitted in the paper), and then applying the technique shown in the article.  The response time of a task is obtained averaging the response time of its job released in the hyperperiod. This operation is performed by "get\_mean\_response\_time\_of", that looks for all the jobs of a task and calls "get\_response\_time\_of\_job" for each of them.
+
+\subsection{IMPLEMENTATION'S CHOICES}
+The  backlog matrix was truncated as described by the paper, without aggregating the probabilities that don't fit i the matrix into the maximum possible value (namely in the last row of the matrix). This implies that, starting from column r+1, the columns don't sum to 1.
+
+Te minimum dimension for the backlog matrix is the maximum between r and mr (the biggest index of the backlog P(B\_1,B\_0 = r) such that its value is greater than 0). This constraint allow to build a matrix that at least contains the complete distributions P(B\_1,B\_0 = i) i in [0..r]. 
+
+\section{RUN THE PROGRAM}
+After the compilation, an executable file called "rtsanalysis" is created. The program accepts few options:
+\begin{itemize}
+\item -h prints an help message.
+\item -t [task] specifies which task has to be computed. The argument ranges from [1...N] where N i s the number of the tasks. The number represents the order in which the tasks appear in the input stream. The format is discussed below.
+\item -b prints the backlog matrix.
+\item -q prints the minimum dimension for the backlog matrix.hash
+\item -s [size] let the user specifies the dimension of the backlog matrix, the minimum value in the one returned by -q
+
+the output of the program is the distribution of the response time up to the deadline. The deadline miss probability is stored in the index deadline+1.
+\end{itemize}
+
+\subsection{THE INPUT}
+The input for the program must be provided from the standard input. The input is a csv with a task for every line. No blank lines, if the first character of a line is '\#' (hash) the line is skipped. The format is: \\
+DEADLINE,PERIOD,INITIAL\_PHASE,p(C=0),p(C=1),......,p(C=N) \\
+where p(C=i) is the probability that the time required by the task is i. The probabilities must sum to a value near to 1.
+
+The task in input must appear ordered by deadline, or the results won't be correct. A folder called example contains a bunch of task set to try the program (the ones used in the paper).
+
+\subsection{EXAMPLES}
+
+In the src folder, executing \\
+
+./rtsanalysis -t 2  ../examples/example1.txt \\
+ will dsiplay the response time for task 2 \\
+
+./rtsanalysis -b -t 2  ../examples/example1.txt \\
+before the response time, the backlog matrix for task 2 will be printed.
+
+./rtsanalysis -q -t 2  ../examples/example1.txt \\
+this will print only the minimum matrix dimension for the backlog matrix of task 2
+
+./rtsanalysis  -s 500 -t 2  ../examples/example1.txt \\
+will calculate the response time for task 2 using a matrix of dimension 1500
