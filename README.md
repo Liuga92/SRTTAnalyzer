@@ -3,4 +3,4 @@ Stochastic Analyzer of real time periodic task sets, an implementation of the pa
 
 The implementation covers only the static priorities case.
 
-Have a look to notes.tex for some insights of how it works
+Have a look to notes.tex for some insights on how it works
